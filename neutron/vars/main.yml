@@ -1,0 +1,77 @@
+---
+
+neutron_config:
+
+  - path: /etc/neutron/neutron.conf
+    values:
+    - 'database connection mysql://neutron:{{ NEUTRON_DBPASS }}@controller/neutron'
+    - DEFAULT auth_strategy keystone
+    - DEFAULT rpc_backend neutron.openstack.common.rpc.impl_qpid
+    - DEFAULT qpid_hostname controller
+    - DEFAULT notify_nova_on_port_status_changes True
+    - DEFAULT notify_nova_on_port_data_changes True
+    - DEFAULT nova_url http://controller:8774/v2
+    - DEFAULT nova_admin_username nova
+    - 'DEFAULT nova_admin_password {{ NOVA_PASS }}'
+    - DEFAULT nova_admin_auth_url http://controller:35357/v2.0
+    - DEFAULT core_plugin neutron.plugins.ml2.plugin.Ml2Plugin
+    - DEFAULT service_plugins neutron.services.l3_router.l3_router_plugin.L3RouterPlugin
+    - DEFAULT agent_down_time 75
+    - DEFAULT report_interval 5
+    - keystone_authtoken auth_uri http://controller:5000
+    - keystone_authtoken auth_host controller
+    - keystone_authtoken auth_protocol http
+    - keystone_authtoken auth_port 35357
+    - keystone_authtoken admin_tenant_name service
+    - keystone_authtoken admin_user neutron
+    - 'keystone_authtoken admin_password {{ NEUTRON_PASS }}'
+
+  - path: /etc/neutron/plugins/ml2/ml2_conf.ini
+    values:
+    - ml2 type_drivers gre
+    - ml2 tenant_network_types gre
+    - ml2 mechanism_drivers openvswitch
+    - ml2_type_gre tunnel_id_ranges 1:1000
+    - agent tunnel_types gre
+    - 'ovs local_ip {{ ip }}'
+    - ovs tunnel_type gre
+    - ovs enable_tunneling True
+    - securitygroup firewall_driver neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+    - securitygroup enable_security_group True
+
+  - path: /etc/nova/nova.conf
+    values:
+    - DEFAULT network_api_class nova.network.neutronv2.api.API
+    - DEFAULT neutron_url http://controller:9696
+    - DEFAULT neutron_auth_strategy keystone
+    - DEFAULT neutron_admin_tenant_name service
+    - DEFAULT neutron_admin_username neutron
+    - 'DEFAULT neutron_admin_password {{ NEUTRON_PASS }}'
+    - DEFAULT neutron_admin_auth_url http://controller:35357/v2.0
+    - DEFAULT linuxnet_interface_driver nova.network.linux_net.LinuxOVSInterfaceDriver
+    - DEFAULT firewall_driver nova.virt.firewall.NoopFirewallDriver
+    - DEFAULT security_group_api neutron
+    - DEFAULT service_neutron_metadata_proxy true
+    - 'DEFAULT neutron_metadata_proxy_shared_secret {{ METADATA_SECRET }}'
+
+  - path: /etc/neutron/l3_agent.ini
+    values:
+    - DEFAULT interface_driver neutron.agent.linux.interface.OVSInterfaceDriver
+    - DEFAULT use_namespaces True
+
+  - path: /etc/neutron/dhcp_agent.ini
+    values:
+    - DEFAULT interface_driver neutron.agent.linux.interface.OVSInterfaceDriver
+    - DEFAULT dhcp_driver neutron.agent.linux.dhcp.Dnsmasq
+    - DEFAULT use_namespaces True
+
+  - path: /etc/neutron/metadata_agent.ini
+    values:
+    - DEFAULT auth_url http://controller:5000/v2.0
+    - DEFAULT auth_region regionOne
+    - DEFAULT admin_tenant_name service
+    - DEFAULT admin_user neutron
+    - 'DEFAULT admin_password {{ NEUTRON_PASS }}'
+    - DEFAULT nova_metadata_ip controller
+    - 'DEFAULT metadata_proxy_shared_secret {{ METADATA_SECRET }}'
+

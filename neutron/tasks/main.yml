@@ -1,0 +1,7 @@
+---
+
+- include: db.yml
+- include: kernel.yml
+- include: server.yml
+- include: keystone.yml
+- include: networking.yml

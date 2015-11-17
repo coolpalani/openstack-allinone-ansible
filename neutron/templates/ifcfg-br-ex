@@ -1,0 +1,9 @@
+DEVICE=br-ex
+DEVICETYPE=ovs
+TYPE=OVSBridge
+ONBOOT=yes
+NM_CONTROLLED=no
+
+OVSBOOTPROTO=dhcp
+OVSDHCPINTERFACES={{ ext_nic.device }}
+

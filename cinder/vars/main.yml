@@ -1,0 +1,17 @@
+---
+
+cinder_config:
+  - path: /etc/cinder/cinder.conf
+    values:
+    - 'database connection mysql://cinder:{{ CINDER_DBPASS }}@controller/cinder'
+    - DEFAULT auth_strategy keystone
+    - DEFAULT rpc_backend cinder.openstack.common.rpc.impl_qpid
+    - DEFAULT qpid_hostname controller
+    - DEFAULT glance_host controller
+    - keystone_authtoken auth_uri http://controller:5000
+    - keystone_authtoken auth_host controller
+    - keystone_authtoken auth_protocol http
+    - keystone_authtoken auth_port 35357
+    - keystone_authtoken admin_user cinder
+    - keystone_authtoken admin_tenant_name service
+    - 'keystone_authtoken admin_password {{ CINDER_PASS }}'

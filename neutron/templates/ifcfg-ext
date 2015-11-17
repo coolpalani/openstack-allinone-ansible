@@ -1,0 +1,8 @@
+DEVICE={{ ext_nic.device }}
+DEVICETYPE=ovs
+TYPE=OVSPort
+OVS_BRIDGE=br-ex
+ONBOOT=yes
+NM_CONTROLLED=no
+
+HWADDR={{ ext_nic.macaddress }}

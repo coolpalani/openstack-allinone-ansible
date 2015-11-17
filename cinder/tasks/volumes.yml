@@ -1,0 +1,36 @@
+---
+
+- name: Check if volume exists
+  shell: "[ -b {{ CINDER_VOLUME }} ]"
+  changed_when: False
+
+# Create physical cinder volume
+- name: Check if physical cinder volume created
+  shell: pvs | grep {{ CINDER_VOLUME }}
+  register: doesCinderPhysicialVolumeExist
+  failed_when: False
+  changed_when: doesCinderPhysicialVolumeExist.rc != 0
+
+- name: Create physical cinder volume
+  command: pvcreate {{ CINDER_VOLUME }}
+  when: doesCinderPhysicialVolumeExist.rc != 0
+
+# Create cinder volume group
+- name: Check if cinder volume group created
+  shell: vgs | grep cinder-volumes
+  register: doesCinderVolumeGroupExists
+  failed_when: False
+  changed_when: doesCinderVolumeGroupExists.rc != 0
+
+- name: Create cinder volume group
+  command: vgcreate cinder-volumes {{ CINDER_VOLUME }}
+  when: doesCinderVolumeGroupExists.rc != 0
+
+- name: Modify targets.conf
+  lineinfile:
+    insertbefore=BOF
+    state=present
+    dest=/etc/tgt/targets.conf
+    line="include /etc/cinder/volumes/*"
+  notify:
+    - restart tgtd

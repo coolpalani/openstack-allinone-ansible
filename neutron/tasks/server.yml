@@ -1,0 +1,119 @@
+---
+
+- name: Install packages
+  yum: name={{item}}
+  with_items:
+    - openstack-neutron
+    - openstack-neutron-ml2
+    - openstack-neutron-openvswitch
+
+- name: Install client
+  yum: name='python-neutronclient'
+
+- name: Setup configuration files
+  command: "~/openstack-config-helper.sh {{item.0.path}} {{item.1}}"
+  register: res
+  changed_when: res.stdout == '1'
+  with_subelements:
+    - neutron_config
+    - values
+
+# Needed b/c openstack-config tool doesn't support multi values - value with
+# multiple strings
+- name: Setup configuration files - multi values
+  lineinfile:
+    dest=/etc/neutron/plugins/ml2/ml2_conf.ini
+    insertafter='^\[agent\]'
+    line='root_helper = sudo /usr/bin/neutron-rootwrap /etc/neutron/rootwrap.conf'
+
+- name: Register tenant service id
+  shell: "keystone tenant-list | awk '/ service / { print $2 }'"
+  register: tenant_service_id
+  environment: os_env
+  changed_when: False
+
+- name: Setup configuration files
+  command: >
+    ~/openstack-config-helper.sh /etc/neutron/neutron.conf
+    DEFAULT nova_admin_tenant_id {{ tenant_service_id.stdout }}
+  register: res
+  changed_when: res.stdout == '1'
+
+- name: Copy neutron plugin conf b/c bug
+  file:
+    path=/etc/neutron/plugin.ini
+    src=/etc/neutron/plugins/ml2/ml2_conf.ini
+    state=link
+
+- name: Copy neutron plugin conf b/c bug
+  file:
+    path=/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini
+    src=/etc/neutron/plugins/ml2/ml2_conf.ini
+    state=link
+    force=yes
+
+- name: Restart nova services
+  service:
+    name={{item}}
+    state=restarted
+  with_items:
+    - openstack-nova-api
+    - openstack-nova-scheduler
+    - openstack-nova-conductor
+    - openstack-nova-compute
+
+- name: Start and enable services
+  service:
+    name={{item}}
+    state=restarted
+    enabled=yes
+  with_items:
+    - neutron-server
+    - openvswitch
+    - neutron-l3-agent
+    - neutron-dhcp-agent
+    - neutron-metadata-agent
+    - neutron-openvswitch-agent
+
+- name: Create a bridge named br-int
+  openvswitch_bridge:
+    bridge='br-int'
+    state=present
+
+- name: Create a bridge named br-ex
+  openvswitch_bridge:
+    bridge='br-ex'
+    state=present
+
+- name: Adds external port on bridge br-ex
+  openvswitch_port:
+    bridge='br-ex'
+    port={{ ext_nic.device }}
+    state=present
+
+- template:
+    src='ifcfg-ext'
+    dest='/etc/sysconfig/network-scripts/ifcfg-{{ ext_nic.device }}'
+    backup=yes
+
+- template:
+    src='ifcfg-br-ex'
+    dest='/etc/sysconfig/network-scripts/ifcfg-br-ex'
+
+- name: Restart network
+  service:
+    name=network
+    state=restarted
+
+- template:
+    src='restore-network'
+    dest='/root/restore-network'
+
+- template:
+    src='restore-network.service'
+    dest='/lib/systemd/system/restore-network.service'
+    mode=0744
+
+- service:
+    name='restore-network'
+    enabled=yes

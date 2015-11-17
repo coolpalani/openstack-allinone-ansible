@@ -1,0 +1,55 @@
+---
+
+- name: Install packages
+  yum: name={{item}} state=present
+  with_items:
+    - memcached
+    - python-memcached
+    - mod_wsgi
+    - openstack-dashboard
+
+
+- name: Modify openstack-dashboard local local_settings
+  lineinfile: "{{item}}"
+  with_items:
+    - >
+      dest="/etc/openstack-dashboard/local_settings"
+      regexp="^OPENSTACK_HOST.*"
+      state=present
+      line='OPENSTACK_HOST = "controller"'
+    - >
+      dest="/etc/openstack-dashboard/local_settings"
+      regexp="^ALLOWED_HOSTS.*"
+      state=present
+      line="ALLOWED_HOSTS = ['localhost', 'controller']"
+
+- seboolean:
+    name=httpd_can_network_connect
+    state=yes
+    persistent=yes
+
+- name: Start and enable services
+  service:
+    name={{item}}
+    state=started
+    enabled=yes
+  with_items:
+    - httpd
+    - memcached
+
+- name: Start firewalld
+  service:
+    name=firewalld
+    state=started
+
+- name: Open ports
+  firewalld:
+    port={{item}}
+    permanent=true
+    state=enabled
+  with_items:
+    - 80/tcp
+    - 443/tcp
+    - 6080/tcp
+  notify:
+    - restart firewalld

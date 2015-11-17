@@ -1,0 +1,24 @@
+---
+
+ADMIN_TOKEN: ADMIN_TOKEN
+KEYSTONE_DBPASS: keystone-db-pw
+
+admin_user:
+  password: admin-pw
+  email: tomi.slijepcevic@gmail.com
+  roles:
+    - tenant: admin
+      roles:
+        - admin
+        - _member_
+    - tenant: service
+      roles:
+        - admin
+
+demo_user:
+  password: demo-pw
+  email: demo@gmail.com
+  roles:
+    - tenant: demo
+      roles:
+        - _member_

@@ -1,0 +1,11 @@
+---
+
+- name: Copy admin rc file
+  template:
+    src='admin-openrc.sh'
+    dest='~/admin-openrc.sh'
+
+- name: Copy demo rc file
+  template:
+    src='demo-openrc.sh'
+    dest='~/demo-openrc.sh'

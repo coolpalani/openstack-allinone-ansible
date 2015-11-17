@@ -1,0 +1,44 @@
+---
+
+# WARNING:
+# - database connection mysql://glance:{{ GLANCE_DBPASS }}@controller/glance
+# - DEFAULT sql_connection mysql://glance:{{ GLANCE_DBPASS }}@controller/glance
+# 
+# First item is from documentation and with it the glance-manage
+#   won't successfully connect to database.
+# Second item is the RIGHT one.
+
+
+cirros_image:
+  name: cirros-0.3.2-x86_64
+  location: http://cdn.download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img
+
+glance_config:
+  - path: /etc/glance/glance-api.conf
+    values:
+    # - database connection mysql://glance:{{ GLANCE_DBPASS }}@controller/glance
+    - 'DEFAULT sql_connection mysql://glance:{{ GLANCE_DBPASS }}@controller/glance'
+    - DEFAULT rpc_backend qpid
+    - DEFAULT qpid_hostname controller
+    - keystone_authtoken auth_uri http://controller:5000
+    - keystone_authtoken auth_host controller
+    - keystone_authtoken auth_port 35357
+    - keystone_authtoken auth_protocol http
+    - keystone_authtoken admin_tenant_name service
+    - keystone_authtoken admin_user glance
+    - 'keystone_authtoken admin_password {{ GLANCE_PASS }}'
+    - paste_deploy flavor keystone
+
+
+  - path: /etc/glance/glance-registry.conf
+    values:
+    # - database connection mysql://glance:{{ GLANCE_DBPASS }}@controller/glance
+    - 'DEFAULT sql_connection mysql://glance:{{ GLANCE_DBPASS }}@controller/glance'
+    - keystone_authtoken auth_uri http://controller:5000
+    - keystone_authtoken auth_host controller
+    - keystone_authtoken auth_port 35357
+    - keystone_authtoken auth_protocol http
+    - keystone_authtoken admin_tenant_name service
+    - keystone_authtoken admin_user glance
+    - 'keystone_authtoken admin_password {{ GLANCE_PASS }}'
+    - paste_deploy flavor keystone

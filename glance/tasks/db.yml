@@ -1,0 +1,20 @@
+---
+
+- name: Create database
+  mysql_db:
+    name=glance
+    encoding=UTF8
+    login_user=root
+    login_password={{ mysql_root_password }}
+    state=present
+
+- name: Assign privileges to glance user
+  mysql_user:
+    name=glance
+    password={{ GLANCE_DBPASS }}
+    priv=glance.*:ALL,GRANT
+    state=present
+    host={{item}}
+  with_items:
+    - localhost
+    - '%'

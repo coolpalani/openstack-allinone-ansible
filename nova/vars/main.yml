@@ -1,0 +1,24 @@
+---
+
+nova_config:
+  - path: /etc/nova/nova.conf
+    values:
+    - 'database connection mysql://nova:{{ NOVA_DBPASS }}@controller/nova'
+    - DEFAULT auth_strategy keystone
+    - DEFAULT rpc_backend qpid
+    - DEFAULT qpid_hostname controller
+    - 'DEFAULT my_ip {{ ip }}'
+    - DEFAULT vnc_enabled True
+    - DEFAULT vncserver_listen 0.0.0.0
+    - 'DEFAULT vncserver_proxyclient_address {{ ip }}'
+    - DEFAULT novncproxy_base_url http://controller:6080/vnc_auto.html
+    - DEFAULT glance_host controller
+    - DEFAULT vif_plugging_is_fatal False
+    - DEFAULT vif_plugging_timeout 0
+    - keystone_authtoken auth_uri http://controller:5000
+    - keystone_authtoken auth_host controller
+    - keystone_authtoken auth_protocol http
+    - keystone_authtoken auth_port 35357
+    - keystone_authtoken admin_user nova
+    - keystone_authtoken admin_tenant_name service
+    - 'keystone_authtoken admin_password {{ NOVA_PASS }}'

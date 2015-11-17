@@ -1,0 +1,6 @@
+---
+
+- include: db.yml
+- include: server.yml
+- include: keystone.yml
+- include: volumes.yml

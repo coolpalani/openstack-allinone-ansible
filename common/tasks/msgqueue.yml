@@ -1,0 +1,15 @@
+---
+
+- name: Install qpid
+  yum: name=qpid-cpp-server state=present
+
+- name: Setup qpid
+  lineinfile:
+    dest=/etc/qpidd.conf
+    line="auth-no"
+    insertafter=EOF
+    state=present
+    create=True
+
+- name: Start qpidd
+  service: name=qpidd state=started enabled=yes

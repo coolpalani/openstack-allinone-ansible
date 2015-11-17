@@ -1,0 +1,25 @@
+---
+
+- name: Create nova user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=nova
+    password={{ NOVA_PASS }}
+    email=nova@example.com
+    tenant=service
+
+- name: Roles for nova user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=nova
+    tenant=service
+    role=admin
+
+- name: Create service and endpoint
+  keystone_service:
+    token={{ ADMIN_TOKEN }}
+    name=nova
+    type=compute
+    description="OpenStack Compute"
+    url="http://controller:8774/v2/%(tenant_id)s"
+    region=regionOne

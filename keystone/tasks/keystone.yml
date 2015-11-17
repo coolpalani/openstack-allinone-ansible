@@ -1,0 +1,62 @@
+---
+
+- name: Create tenants
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    tenant={{ item }}
+  with_items:
+    - admin
+    - demo
+    - service
+
+- name: Create admin user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=admin
+    password={{ admin_user.password }}
+    email={{ admin_user.email }}
+    tenant={{ item }}
+  with_items:
+    - admin
+    - service
+
+- name: Roles for admin user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=admin
+    tenant={{ item.0.tenant }}
+    role={{ item.1 }}
+  with_subelements:
+     - admin_user.roles
+     - roles
+
+- name: Create demo user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=demo
+    password={{ demo_user.password }}
+    email={{ demo_user.email }}
+    tenant={{ item }}
+  with_items:
+    - demo
+
+- name: Roles for demo user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=demo
+    tenant={{ item.0.tenant }}
+    role={{ item.1 }}
+  with_subelements:
+     - demo_user.roles
+     - roles
+
+- name: Create service and endpoint
+  keystone_service:
+    token={{ ADMIN_TOKEN }}
+    name=keystone
+    type=identity
+    description="Identity Service"
+    public_url="http://controller:5000/v2.0"
+    internal_url="http://controller:5000/v2.0"
+    admin_url="http://controller:35357/v2.0"
+    region=regionOne

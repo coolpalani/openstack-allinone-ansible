@@ -1,0 +1,76 @@
+---
+
+- name: Create public network
+  neutron_network:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    name='ext-net'
+    shared=True
+    router_external=yes
+
+- name: Create public subnet
+  neutron_subnet:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    name='ext-subnet'
+    network_name='ext-net'
+    allocation_pool_start={{ ext_net.pool.start }}
+    allocation_pool_end={{ ext_net.pool.end }}
+    cidr={{ ext_net.cidr }}
+    gateway_ip={{ ext_net.gateway }}
+    enable_dhcp=false
+
+- name: Create demo network
+  neutron_network:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    name='demo-net'
+    shared=True
+    tenant_name=admin
+
+- name: Create demo subnet
+  neutron_subnet:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    name='demo-subnet'
+    network_name='demo-net'
+    tenant_name=admin
+    cidr={{ demo_net.cidr }}
+    gateway_ip={{ demo_net.gateway }}
+    dns_nameservers=8.8.8.8
+
+- name: Create demo router
+  neutron_router:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    name='demo-router'
+    tenant_name=admin
+
+- name: Attach public gateway to demo router
+  neutron_router_gateway:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    router_name='demo-router'
+    network_name='ext-net'
+
+- name: Attach demo subnet to demo router
+  neutron_router_interface:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    tenant_name=admin
+    router_name='demo-router'
+    subnet_name='demo-subnet'

@@ -1,0 +1,20 @@
+---
+# This playbook deploys OpenStack
+
+- hosts: openstack
+  sudo: yes
+
+  vars:
+    ip: "{{ ansible_p2p1.ipv4.address }}"
+    mysql_root_password: foobar
+    ext_nic: "{{ ansible_p7p1 }}"
+
+  roles:
+    - common
+    - keystone
+    - glance
+    - nova
+    - neutron
+    - horizon
+    - cinder
+    - nova.instance

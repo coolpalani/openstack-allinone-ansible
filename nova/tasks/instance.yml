@@ -1,0 +1,28 @@
+---
+
+- name: Register id of cirros image
+  shell: "nova image-list | awk '/ {{ GLANCE_CIRROS_IMAGE.name }} / {print $2}'"
+  register: image_id
+  environment: os_env_adminrc
+  changed_when: False
+
+- name: Register id of demo net 
+  shell: "neutron net-list | awk '/ demo-net / {print $2}'"
+  register: demo_net_id
+  environment: os_env_adminrc
+  changed_when: False
+
+- name: Create demo instance
+  when: image_id.stdout != '' and demo_net_id.stdout != ''
+  nova_compute:
+    login_username: demo
+    login_password: '{{ demo_user.password }}'
+    login_tenant_name: demo
+    name: demo-instance
+    image_id: '{{ image_id.stdout }}'
+    key_name: ansible_key
+    wait_for: 200
+    flavor_id: 1
+    key_name: demo-key
+    nics:
+      - net-id: '{{ demo_net_id.stdout }}'

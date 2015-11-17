@@ -1,0 +1,34 @@
+---
+
+- name: Create cinder user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=cinder
+    password={{ CINDER_PASS }}
+    email=cinder@example.com
+    tenant=service
+
+- name: Roles for cinder user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=cinder
+    tenant=service
+    role=admin
+
+- name: Create service and endpoint
+  keystone_service:
+    token={{ ADMIN_TOKEN }}
+    name=cinder
+    type=volume
+    description="OpenStack Block Storage"
+    url="http://controller:8776/v1/%(tenant_id)s"
+    region=regionOne
+
+- name: Create servicev2 and endpointv2
+  keystone_service:
+    token={{ ADMIN_TOKEN }}
+    name=cinderv2
+    type=volumev2
+    description="OpenStack Block Storage v2"
+    url="http://controller:8776/v2/%(tenant_id)s"
+    region=regionOne

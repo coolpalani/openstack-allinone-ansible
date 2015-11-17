@@ -1,0 +1,48 @@
+---
+
+- name: Change hostname
+  sysctl:
+    name=kernel.hostname
+    value=controller
+
+- name: Disable NetworkManager
+  service:
+    name=NetworkManager
+    state=stopped
+    enabled=no
+
+- name: Enable network
+  service:
+    name=network
+    state=started
+    enabled=yes
+
+- name: Configure name resolution
+  lineinfile:
+    dest=/etc/hosts
+    regexp="\scontroller network compute1$"
+    state=present
+    line="{{ ip }}  controller network compute1"
+
+- name: Install needed packages for OpenStack setup
+  yum:
+    name={{ item }}
+    state=present
+  with_items:
+    - yum-plugin-priorities
+    - http://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-3.noarch.rpm
+    - openstack-utils
+    - python-pip
+
+- name: Copy openstack-config helper
+  copy:
+    src='openstack-config-helper.sh'
+    dest='~/openstack-config-helper.sh'
+    mode=740
+
+- name: Permanently disable SELinux
+  selinux:
+    state=permissive
+
+- include: db.yml
+- include: msgqueue.yml

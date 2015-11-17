@@ -1,0 +1,46 @@
+---
+
+- name: Copy public key
+  copy:
+    src=id_rsa.pub
+    dest=/root/id_rsa.pub
+
+# NOTE: Not working
+# - name: Create demo keypair
+#   nova_keypair:
+#     login_username=admin
+#     login_password={{ admin_user.password }}
+#     login_tenant_name=admin
+
+#     name='demo-key'
+#     public_key={{ lookup('file', 'root/id_rsa.pub') }}
+
+# Create admin keypair
+- name: Check if admin keypair exists
+  shell: "nova keypair-list | awk '/ demo-key / {print $4}'"
+  register: keypair_fingerprint
+  environment: os_env_adminrc
+  changed_when: False
+
+- name: Create admin keypair
+  shell: >
+    nova keypair-add
+    --pub-key /root/id_rsa.pub
+    demo-key
+  environment: os_env_adminrc
+  when: keypair_fingerprint.stdout == ""
+
+# Create demo keypair
+- name: Check if demo keypair exists
+  shell: "nova keypair-list | awk '/ demo-key / {print $4}'"
+  register: keypair_fingerprint
+  environment: os_env_demorc
+  changed_when: False
+
+- name: Create demo keypair
+  shell: >
+    nova keypair-add
+    --pub-key /root/id_rsa.pub
+    demo-key
+  environment: os_env_demorc
+  when: keypair_fingerprint.stdout == ""

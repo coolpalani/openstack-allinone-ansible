@@ -1,0 +1,25 @@
+---
+
+- name: Create glance user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=glance
+    password={{ GLANCE_PASS }}
+    email=glance@example.com
+    tenant=service
+
+- name: Roles for glance user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=glance
+    tenant=service
+    role=admin
+
+- name: Create service and endpoint
+  keystone_service:
+    token={{ ADMIN_TOKEN }}
+    name=glance
+    type=image
+    description="OpenStack Image Service"
+    url="http://controller:9292"
+    region=regionOne

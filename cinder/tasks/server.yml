@@ -1,0 +1,36 @@
+---
+
+- name: Install packages
+  yum: name={{item}} state=present
+  with_items:
+    - openstack-cinder
+    - scsi-target-utils
+
+- name: Setup configuration files
+  command: "~/openstack-config-helper.sh {{item.0.path}} {{item.1}}"
+  register: res
+  changed_when: res.stdout == '1'
+  with_subelements:
+    - cinder_config
+    - values
+
+- name: Check database version
+  shell: v=$(su -s /bin/sh -c "cinder-manage db version" cinder) && [[ $v != 0 ]]
+  register: dbReady
+  changed_when: False
+  failed_when: False
+
+- name: Execute cinder-manage sync
+  command: su -s /bin/sh -c "cinder-manage db sync" cinder
+  when: dbReady|failed
+
+- name: Start and enable services
+  service:
+    name={{item}}
+    state=started
+    enabled=yes
+  with_items:
+    - openstack-cinder-api
+    - openstack-cinder-scheduler
+    - openstack-cinder-volume
+    - tgtd

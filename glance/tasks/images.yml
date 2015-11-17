@@ -1,0 +1,13 @@
+---
+
+- name: Create cirros image
+  glance_image:
+    login_username=admin
+    login_password={{ admin_user.password }}
+    login_tenant_name=admin
+
+    name={{ cirros_image.name }}
+    container_format=bare
+    disk_format=qcow2
+    copy_from={{ cirros_image.location }}
+

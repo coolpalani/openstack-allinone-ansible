@@ -1,0 +1,54 @@
+---
+
+- name: Install needed packages for mariadb
+  yum:
+    name={{ item }}
+    state=present
+  with_items:
+    - mariadb
+    - mariadb-server
+    - MySQL-python
+
+- name: Start and enable mariadb
+  service:
+    name=mariadb
+    state=started
+    enabled=yes
+
+- name: Copy mariadb's conf file
+  copy:
+    dest=/etc/my.cnf
+    src=my.cnf
+
+- name: Copy mariadb's credentials file
+  template:
+    src=.my.cnf
+    dest=/root/.my.cnf
+    owner=root
+    mode=0600
+
+- name: Check root password
+  command: mysql --user root --password=foobar -e "SELECT 1;"
+  changed_when: False
+  register: root_password
+  failed_when: False
+
+- name: Setup root user
+  mysql_user:
+    name=root
+    password={{ mysql_root_password }}
+    state=present
+    login_host=localhost
+    login_user=root
+    login_password=''
+  when: root_password|failed
+
+- name: Delete anonymous user
+  mysql_user:
+    name=''
+    state=absent
+    host={{ item }}
+  with_items:
+    - localhost
+    - controller
+    - '{{ inventory_hostname }}'

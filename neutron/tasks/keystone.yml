@@ -1,0 +1,25 @@
+---
+
+- name: Create neutron user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=neutron
+    password={{ NEUTRON_PASS }}
+    email=neutron@example.com
+    tenant=service
+
+- name: Roles for neutron user
+  keystone_user:
+    token={{ ADMIN_TOKEN }}
+    user=neutron
+    tenant=service
+    role=admin
+
+- name: Create service and endpoint
+  keystone_service:
+    token={{ ADMIN_TOKEN }}
+    name=neutron
+    type=network
+    description="OpenStack Networking"
+    url="http://controller:9696"
+    region=regionOne
